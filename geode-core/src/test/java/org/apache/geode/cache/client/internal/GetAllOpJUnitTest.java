@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,10 +41,12 @@ import org.apache.geode.internal.cache.tier.sockets.VersionedObjectList;
 import org.apache.geode.test.fake.Fakes;
 
 public class GetAllOpJUnitTest {
-  private ExecutablePool pool = mock(PoolImpl.class);
-  private GemFireCacheImpl cache = Fakes.cache();
-  private LocalRegion region = mock(LocalRegion.class);
-  ArrayList<Integer> keys;
+
+  private final ExecutablePool pool = mock(PoolImpl.class);
+  private final GemFireCacheImpl cache = Fakes.cache();
+  private final LocalRegion region = mock(LocalRegion.class);
+
+  private ArrayList<Integer> keys;
 
   @Before
   public void setup() {
@@ -55,7 +58,7 @@ public class GetAllOpJUnitTest {
     for (int i = 1; i <= 10; i++) {
       keys.add(i);
     }
-    Map<ServerLocation, HashSet> serverToFilterMap = new HashMap<>();
+    Map<ServerLocation, Set> serverToFilterMap = new HashMap<>();
     when(cms.getServerToFilterMap(keys, region, true)).thenReturn(serverToFilterMap);
     ServerLocation serverLocation = new ServerLocation("localhost", 12345);
     serverToFilterMap.put(serverLocation, new HashSet(keys));
