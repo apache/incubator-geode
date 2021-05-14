@@ -180,6 +180,10 @@ public class LocalHostUtil {
     }
   }
 
+  public static void main(String[] args) throws Exception {
+    System.out.println("getMyAddresses: " + getMyAddresses());
+  }
+
   /**
    * This method uses JNDI to look up an address in DNS and return its name
    *

@@ -12,7 +12,6 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.apache.geode.internal.cache;
 
 import java.util.Collections;
@@ -22,30 +21,25 @@ import java.util.Set;
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.partitioned.Bucket;
 
-
 /**
  * This class encapsulates the Bucket Related heuristics/algos for a PR.
- *
- *
  */
 class PartitionedRegionBucketMgmtHelper {
 
   /**
-   *
-   * @param b Bucket to evaluate
+   * @param bucket Bucket to evaluate
    * @return true if it is allowed to be recovered
    * @since GemFire 5.9
    */
-  static boolean bucketIsAllowedOnThisHost(Bucket b, InternalDistributedMember moveSource) {
-    if (b.getDistributionManager().enforceUniqueZone()) {
-      Set<InternalDistributedMember> hostingMembers = b.getBucketOwners();
-      Set<InternalDistributedMember> buddyMembers =
-          new HashSet(b.getDistributionManager().getMembersInThisZone());
-      boolean disjoint = Collections.disjoint(hostingMembers, buddyMembers);
-      boolean sourceIsOneThisHost = moveSource != null && buddyMembers.contains(moveSource);
-      return disjoint || sourceIsOneThisHost;
-    } else {
-      return true;
+  static boolean bucketIsAllowedOnThisHost(Bucket bucket, InternalDistributedMember fromMember) {
+    if (bucket.getDistributionManager().enforceUniqueZone()) {
+      Set<InternalDistributedMember> hostingMembers = bucket.getBucketOwners();
+      Set<InternalDistributedMember> membersInThisZone =
+          new HashSet<>(bucket.getDistributionManager().getMembersInThisZone());
+      boolean hostMemberAreNotInThisZone = Collections.disjoint(hostingMembers, membersInThisZone);
+      boolean fromMemberIsOnThisHost = fromMember != null && membersInThisZone.contains(fromMember);
+      return hostMemberAreNotInThisZone || fromMemberIsOnThisHost;
     }
+    return true;
   }
 }

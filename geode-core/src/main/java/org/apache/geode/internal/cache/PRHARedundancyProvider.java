@@ -54,7 +54,6 @@ import org.apache.geode.cache.RegionDestroyedException;
 import org.apache.geode.cache.persistence.PartitionOfflineException;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.distributed.internal.DistributionManager;
-import org.apache.geode.distributed.internal.LonerDistributionManager;
 import org.apache.geode.distributed.internal.MembershipListener;
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.Assert;
@@ -625,22 +624,7 @@ public class PRHARedundancyProvider {
 
           InternalDistributedMember candidate = createBucketInstance(bucketId, newBucketSize,
               excludedMembers, acceptedMembers, failedMembers, timeOut, allStores);
-          if (candidate != null) {
-            if (partitionedRegion.getDistributionManager().enforceUniqueZone()) {
-              // enforceUniqueZone property has no effect for a loner
-              if (!(partitionedRegion
-                  .getDistributionManager() instanceof LonerDistributionManager)) {
-                Set<InternalDistributedMember> exm = getBuddyMembersInZone(candidate, allStores);
-                exm.remove(candidate);
-                exm.removeAll(acceptedMembers);
-                excludedMembers.addAll(exm);
-              } else {
-                // log a warning if Loner
-                logger.warn(
-                    "enforce-unique-host and redundancy-zone properties have no effect for a LonerDistributedSystem.");
-              }
-            }
-          }
+          validateCandidateStore(excludedMembers, acceptedMembers, allStores, candidate);
 
           // Get an updated list of bucket owners, which should include
           // buckets created concurrently with this createBucketAtomically call
@@ -762,6 +746,28 @@ public class PRHARedundancyProvider {
               logger.warn("Exception trying choose a primary after bucket creation failure", e);
             }
           }
+        }
+      }
+    }
+  }
+
+  private void validateCandidateStore(Set<InternalDistributedMember> excludedMembers,
+      Collection<InternalDistributedMember> acceptedMembers,
+      Set<InternalDistributedMember> allStores,
+      InternalDistributedMember candidate) {
+    if (candidate != null) {
+      DistributionManager distributionManager = partitionedRegion.getDistributionManager();
+      if (distributionManager.enforceUniqueZone()) {
+        // enforceUniqueZone property has no effect for a loner
+        if (!distributionManager.isLoner()) {
+          Set<InternalDistributedMember> exm = getBuddyMembersInZone(candidate, allStores);
+          exm.remove(candidate);
+          exm.removeAll(acceptedMembers);
+          excludedMembers.addAll(exm);
+        } else {
+          // log a warning if Loner
+          logger.warn(
+              "enforce-unique-host and redundancy-zone properties have no effect for a LonerDistributedSystem.");
         }
       }
     }
