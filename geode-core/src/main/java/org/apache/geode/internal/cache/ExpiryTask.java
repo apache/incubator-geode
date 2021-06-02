@@ -97,12 +97,31 @@ public abstract class ExpiryTask extends SystemTimer.SystemTimerTask {
     long ttl = getTTLAttributes().getTimeout();
     long tilt = 0;
     if (ttl > 0) {
-      if (getLocalRegion() != null && !getLocalRegion().EXPIRY_UNITS_MS) {
+      if (isExpiryUnitSeconds()) {
         ttl *= 1000;
       }
       tilt = getLastModifiedTime() + ttl;
     }
     return tilt;
+  }
+
+  /** Return true if the expiration unit is seconds; false if milliseconds */
+  public boolean isExpiryUnitSeconds() {
+    boolean isSeconds = true;
+    if (getLocalRegion() != null && getLocalRegion().EXPIRY_UNITS_MS) {
+      isSeconds = false;
+    }
+    return isSeconds;
+  }
+
+  public boolean hasExpired(long now, long expireTime) {
+    if (isExpiryUnitSeconds()) {
+      // Units are seconds but the internal timestamps are milliseconds.
+      // To prevent a needless reschedule, bump now by half a second.
+      final int MILLIS_PER_SECOND = 1000;
+      now += MILLIS_PER_SECOND / 2;
+    }
+    return now >= expireTime;
   }
 
   /** Return the absolute time when idle expiration occurs, or 0 if not used */
@@ -117,7 +136,7 @@ public abstract class ExpiryTask extends SystemTimer.SystemTimerTask {
   protected long getIdleTimeoutInMillis() {
     long idle = getIdleAttributes().getTimeout();
     if (idle > 0) {
-      if (getLocalRegion() != null && !getLocalRegion().EXPIRY_UNITS_MS) {
+      if (isExpiryUnitSeconds()) {
         idle *= 1000;
       }
     }
@@ -143,13 +162,13 @@ public abstract class ExpiryTask extends SystemTimer.SystemTimerTask {
     long expTime = getExpirationTime();
     if (expTime > 0L) {
       long now = getNow();
-      if (now >= expTime) {
+      if (hasExpired(now, expTime)) {
         if (isIdleExpiredOnOthers()) {
           return true;
         } else {
           // our last access time was reset so recheck
           expTime = getExpirationTime();
-          if (expTime > 0L && now >= expTime) {
+          if (expTime > 0L && hasExpired(now, expTime)) {
             return true;
           }
         }
