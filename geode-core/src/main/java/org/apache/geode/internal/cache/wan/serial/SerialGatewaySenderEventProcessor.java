@@ -111,14 +111,14 @@ public class SerialGatewaySenderEventProcessor extends AbstractGatewaySenderEven
       ThreadsMonitoring tMonitoring, boolean cleanQueues) {
     super("Event Processor for GatewaySender_" + id, sender, tMonitoring);
     synchronized (this.unprocessedEventsLock) {
-      initializeMessageQueue(id, cleanQueues);
+      initializeMessageQueue(id, cleanQueues, false);
       this.unprocessedEvents = new LinkedHashMap<EventID, EventWrapper>();
       this.unprocessedTokens = new LinkedHashMap<EventID, Long>();
     }
   }
 
   @Override
-  protected void initializeMessageQueue(String id, boolean cleanQueues) {
+  protected void initializeMessageQueue(String id, boolean cleanQueues, boolean isStopped) {
     // Create the region name
     StringBuffer regionNameBuffer = new StringBuffer();
     regionNameBuffer.append(id).append("_SERIAL_GATEWAY_SENDER_QUEUE");

@@ -73,6 +73,11 @@ public class ConcurrentParallelGatewaySenderEventProcessor
 
   public ConcurrentParallelGatewaySenderEventProcessor(AbstractGatewaySender sender,
       ThreadsMonitoring tMonitoring, boolean cleanQueues) {
+    this(sender, tMonitoring, cleanQueues, false);
+  }
+
+  public ConcurrentParallelGatewaySenderEventProcessor(AbstractGatewaySender sender,
+      ThreadsMonitoring tMonitoring, boolean cleanQueues, boolean shouldOnlyRecoverQueues) {
     super("Event Processor for GatewaySender_" + sender.getId(), sender, tMonitoring);
     // initializeMessageQueue(sender.getId());
     logger.info("ConcurrentParallelGatewaySenderEventProcessor: dispatcher threads {}",
@@ -102,26 +107,28 @@ public class ConcurrentParallelGatewaySenderEventProcessor
       logger.debug("The target PRs are {} Dispatchers: {}", targetRs, nDispatcher);
     }
 
-    createProcessors(sender.getDispatcherThreads(), targetRs, cleanQueues);
+    createProcessors(sender.getDispatcherThreads(), targetRs, cleanQueues, shouldOnlyRecoverQueues);
 
     // this.queue = parallelQueue;
     this.queue = new ConcurrentParallelGatewaySenderQueue(sender, this.processors);
+    // }
   }
 
   protected void createProcessors(int dispatcherThreads, Set<Region> targetRs,
-      boolean cleanQueues) {
+      boolean cleanQueues, boolean shouldOnlyRecoverQueues) {
     processors = new ParallelGatewaySenderEventProcessor[sender.getDispatcherThreads()];
     if (logger.isDebugEnabled()) {
       logger.debug("Creating AsyncEventProcessor");
     }
     for (int i = 0; i < sender.getDispatcherThreads(); i++) {
       processors[i] = new ParallelGatewaySenderEventProcessor(sender, targetRs, i,
-          sender.getDispatcherThreads(), getThreadMonitorObj(), cleanQueues);
+          sender.getDispatcherThreads(), getThreadMonitorObj(), cleanQueues,
+          shouldOnlyRecoverQueues);
     }
   }
 
   @Override
-  protected void initializeMessageQueue(String id, boolean cleanQueues) {
+  protected void initializeMessageQueue(String id, boolean cleanQueues, boolean isStopped) {
     // nothing
   }
 
@@ -204,7 +211,6 @@ public class ConcurrentParallelGatewaySenderEventProcessor
       }
       this.getRunningStateLock().notifyAll();
     }
-
     for (ParallelGatewaySenderEventProcessor parallelProcessor : this.processors) {
       try {
         parallelProcessor.join();
@@ -215,6 +221,7 @@ public class ConcurrentParallelGatewaySenderEventProcessor
         }
       }
     }
+
   }
 
   private void waitForRunningStatus() {

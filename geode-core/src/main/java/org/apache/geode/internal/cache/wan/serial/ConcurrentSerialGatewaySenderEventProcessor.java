@@ -70,7 +70,7 @@ public class ConcurrentSerialGatewaySenderEventProcessor
     super("Event Processor for GatewaySender_" + sender.getId(), sender, tMonitoring);
     this.sender = sender;
 
-    initializeMessageQueue(sender.getId(), cleanQueues);
+    initializeMessageQueue(sender.getId(), cleanQueues, false);
     queues = new HashSet<RegionQueue>();
     for (SerialGatewaySenderEventProcessor processor : processors) {
       queues.add(processor.getQueue());
@@ -87,7 +87,7 @@ public class ConcurrentSerialGatewaySenderEventProcessor
   }
 
   @Override
-  protected void initializeMessageQueue(String id, boolean cleanQueues) {
+  protected void initializeMessageQueue(String id, boolean cleanQueues, boolean isStopped) {
     for (int i = 0; i < sender.getDispatcherThreads(); i++) {
       processors.add(
           new SerialGatewaySenderEventProcessor(this.sender, id + "." + i, getThreadMonitorObj(),
