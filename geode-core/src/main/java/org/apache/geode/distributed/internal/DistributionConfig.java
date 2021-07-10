@@ -111,6 +111,7 @@ import static org.apache.geode.distributed.ConfigurationProperties.MEMCACHED_POR
 import static org.apache.geode.distributed.ConfigurationProperties.MEMCACHED_PROTOCOL;
 import static org.apache.geode.distributed.ConfigurationProperties.NAME;
 import static org.apache.geode.distributed.ConfigurationProperties.OFF_HEAP_MEMORY_SIZE;
+import static org.apache.geode.distributed.ConfigurationProperties.QUORUM_ABSOLUTE_LOCATOR_COUNT;
 import static org.apache.geode.distributed.ConfigurationProperties.REDIS_BIND_ADDRESS;
 import static org.apache.geode.distributed.ConfigurationProperties.REDIS_ENABLED;
 import static org.apache.geode.distributed.ConfigurationProperties.REDIS_PASSWORD;
@@ -4092,6 +4093,17 @@ public interface DistributionConfig extends Config, LogConfig, StatisticsConfig 
    */
   @ConfigAttributeSetter(name = DISABLE_AUTO_RECONNECT)
   void setDisableAutoReconnect(boolean value);
+
+  @ConfigAttributeGetter(name = QUORUM_ABSOLUTE_LOCATOR_COUNT)
+  int getQuorumAbsoluteLocatorCount();
+
+  @ConfigAttributeSetter(name = QUORUM_ABSOLUTE_LOCATOR_COUNT)
+  void setQuorumAbsoluteLocatorCount(int quorumAbsoluteLocatorCount);
+
+  @ConfigAttribute(type = Integer.class, min = 0)
+  String QUORUM_ABSOLUTE_LOCATOR_COUNT_NAME = QUORUM_ABSOLUTE_LOCATOR_COUNT;
+  int DEFAULT_QUORUM_ABSOLUTE_LOCATOR_COUNT =
+      MembershipConfig.DEFAULT_QUORUM_ABSOLUTE_LOCATOR_COUNT;
 
   /**
    * @deprecated Geode 1.0 use {@link #getClusterSSLProperties()}

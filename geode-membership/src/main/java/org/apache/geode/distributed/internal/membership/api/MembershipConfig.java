@@ -68,9 +68,11 @@ public interface MembershipConfig {
   Object DEFAULT_OLD_MEMBERSHIP_INFO = null;
   boolean DEFAULT_IS_RECONNECTING_DS = false;
   int DEFAULT_JOIN_TIMEOUT = 24000;
+  int DEFAULT_QUORUM_ABSOLUTE_LOCATOR_COUNT = 0; // 0 means use DifferentialQuorum
 
   String LOCATORS = "locators";
   String START_LOCATOR = "start-locator";
+  String QUORUM_ABSOLUTE_LOCATOR_COUNT = "quorum-absolute-locator-count";
 
   default boolean isReconnecting() {
     return false;
@@ -234,5 +236,9 @@ public interface MembershipConfig {
 
   default boolean getHasLocator() {
     return false;
+  }
+
+  default int getQuorumAbsoluteLocatorCount() {
+    return DEFAULT_QUORUM_ABSOLUTE_LOCATOR_COUNT;
   }
 }
